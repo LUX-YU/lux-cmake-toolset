@@ -5,6 +5,8 @@ The goal of LUX-CMAKE-TOOLSET is to make it more convenient to create a CMake-ba
 ## Installation
 Just copy the content of this project to the search path of the find_package.
 
+You can check [this document](https://cmake.org/cmake/help/latest/command/find_package.html#config-mode-search-procedure).
+
 For example: for linux, you can copy all files of this project to the /usr/share/lux-cmake-toolset/
 
 ## Component Tool Set

@@ -3,11 +3,27 @@
 The goal of LUX-CMAKE-TOOLSET is to make it more convenient to create a CMake-based project.
 
 ## Installation
-Just copy the content of this project to the search path of the find_package.
+To install the LUX-CMAKE-TOOLSET, you can follow these steps:
 
-You can check [this document](https://cmake.org/cmake/help/latest/command/find_package.html#config-mode-search-procedure).
+Copy all the files of this project to a location accessible by CMake's find_package command.
 
-For example: for linux, you can copy all files of this project to the /usr/share/lux-cmake-toolset/
+For Linux, you can copy the files to the directory /usr/share/lux-cmake-toolset/:
+
+``` bash
+Copy code
+sudo cp -R <project_directory> /usr/share/lux-cmake-toolset/
+```
+For other operating systems or custom installation locations, choose a suitable directory and copy the files accordingly.
+
+After copying the files, the LUX-CMAKE-TOOLSET can be used in other CMake projects by simply using the find_package command. For example:
+
+``` cmake
+find_package(LUX-CMAKE-TOOLSET REQUIRED)
+```
+
+For more information on the search procedure of the find_package command, you can refer to the [CMake documentation](https://cmake.org/cmake/help/latest/command/find_package.html#config-mode-search-procedure).
+
+Please note that the installation steps mentioned above are just an example, and you can adjust them according to your specific requirements and target operating system.
 
 ## Component Tool Set
 The component CMake tool is used to create a component-based project.

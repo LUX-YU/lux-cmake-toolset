@@ -9,8 +9,7 @@ function(add_interface_component)
 
 	set(_one_value_arguments	
 		COMPONENT_NAME 
-		EXPORT_NAME 
-		NAMESPACE
+		EXPORT_NAME
 	)
 
 	set(_multi_value_arguments
@@ -59,7 +58,7 @@ function(add_interface_component)
 		message("---- Component export include directories:${export_include_dir}")
 		target_include_directories(
 			${COMPONENT_ARGS_COMPONENT_NAME}
-			PUBLIC
+			INTERFACE
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${export_include_dir}>
 			$<INSTALL_INTERFACE:${export_include_dir}>
 		)
@@ -74,7 +73,7 @@ function(add_interface_component)
 		message("---- Component shared include dir:${shared_include_dir}")
 		target_include_directories(
 			${COMPONENT_ARGS_COMPONENT_NAME}
-			PUBLIC
+			INTERFACE
 			$<BUILD_INTERFACE:${shared_include_dir}>
 		)
 	endforeach()

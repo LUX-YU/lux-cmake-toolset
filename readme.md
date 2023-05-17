@@ -10,8 +10,8 @@ Copy all the files of this project to a location accessible by CMake's find_pack
 For Linux, you can copy the files to the directory /usr/share/lux-cmake-toolset/:
 
 ``` bash
-Copy code
-sudo cp -R <project_directory> /usr/share/lux-cmake-toolset/
+cd /path/to/project
+sudo cp -r ./* /usr/share/lux-cmake-toolset/
 ```
 For other operating systems or custom installation locations, choose a suitable directory and copy the files accordingly.
 

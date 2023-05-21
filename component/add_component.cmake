@@ -208,7 +208,7 @@ function(add_component)
 	)
 
 	foreach(export_include_dir ${COMPONENT_ARGS_EXPORT_INCLUDE_DIRS})
-		message("---- Component export include directories:${export_include_dir}")
+		message("---- Component export include directories:${CMAKE_CURRENT_SOURCE_DIR}/${export_include_dir}")
 		target_include_directories(
 			${COMPONENT_ARGS_COMPONENT_NAME}
 			PUBLIC

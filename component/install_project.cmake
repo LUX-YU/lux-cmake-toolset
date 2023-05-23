@@ -51,7 +51,7 @@ function(install_projects)
     set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/${INSTALL_ARGS_PROJECT_NAME})
 
     foreach(export_name ${EXPORT_NAME_LIST})
-        set(CONFIG_FILE_NAME ${PROJECT_NAME}-${export_name}-config-targets.cmake)
+        set(CONFIG_FILE_NAME ${INSTALL_ARGS_PROJECT_NAME}-${export_name}-config-targets.cmake)
         install(
             EXPORT		${export_name}
             DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}

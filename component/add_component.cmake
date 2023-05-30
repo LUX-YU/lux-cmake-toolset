@@ -10,6 +10,7 @@ function(add_interface_component)
 	set(_one_value_arguments	
 		COMPONENT_NAME 
 		EXPORT_NAME
+		NAMESPACE
 	)
 
 	set(_multi_value_arguments
@@ -17,6 +18,8 @@ function(add_interface_component)
 		PROJECT_SHARED_INCLUDE_DIRS
 
 		PUBLIC_LIBRARIES
+
+		TRANSITIVE_PACKAGES_COMMANDS
 	)
 
 	cmake_parse_arguments(
@@ -42,6 +45,18 @@ function(add_interface_component)
 		${COMPONENT_ARGS_COMPONENT_NAME}
 		INTERFACE
 	)
+
+	# alias
+	if(COMPONENT_ARGS_NAMESPACE)
+	    set(ALIAS_NAME ${COMPONENT_ARGS_NAMESPACE}::${COMPONENT_ARGS_COMPONENT_NAME})
+	    message("---- ALIAS NAME:${ALIAS_NAME}")
+
+	    add_library(
+	    	${ALIAS_NAME}
+	    	ALIAS 
+	    	${COMPONENT_ARGS_COMPONENT_NAME}
+	    )
+    endif()
 
 	set_target_properties(
         ${COMPONENT_ARGS_COMPONENT_NAME}
@@ -77,6 +92,22 @@ function(add_interface_component)
 			$<BUILD_INTERFACE:${shared_include_dir}>
 		)
 	endforeach()
+
+	if(COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS)
+		list(LENGTH COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS COMMANDS_NUM)
+		set_target_properties(${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES TRAN_PACK_CMD_NUM ${COMMANDS_NUM})
+		MATH(EXPR LOOP_COUNT "${COMMANDS_NUM}-1")
+		foreach(_I RANGE ${LOOP_COUNT})
+			list(GET COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS ${_I} find_command)
+			set_target_properties(
+				${COMPONENT_ARGS_COMPONENT_NAME}
+				PROPERTIES TRAN_PACK_CMD_${_I} ${find_command}
+			)
+		endforeach()
+	else()
+		message("---- Component `${COMPONENT_ARGS_COMPONENT_NAME}` has no prefind dependency")
+		set_target_properties(${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES TRAN_PACK_CMD_NUM 0)
+	endif()
 
 endfunction()
 
@@ -135,6 +166,11 @@ function(add_component)
 
 		PUBLIC_LIBRARIES
 		PRIVATE_LIBRARIES
+
+		PUBLIC_DEFINITIONS
+		PRIVATE_DEFINITIONS
+
+		TRANSITIVE_PACKAGES_COMMANDS
 	)
 
 	cmake_parse_arguments(
@@ -207,6 +243,14 @@ function(add_component)
 			${COMPONENT_ARGS_PRIVATE_LIBRARIES}
 	)
 
+	target_compile_definitions(
+		${COMPONENT_ARGS_COMPONENT_NAME}
+		PUBLIC
+			${COMPONENT_ARGS_PUBLIC_DEFINITIONS}
+		PRIVATE
+			${COMPONENT_ARGS_PRIVATE_DEFINITIONS}
+	)
+
 	foreach(export_include_dir ${COMPONENT_ARGS_EXPORT_INCLUDE_DIRS})
 		message("---- Component export include directories:${CMAKE_CURRENT_SOURCE_DIR}/${export_include_dir}")
 		target_include_directories(
@@ -239,4 +283,24 @@ function(add_component)
 			${private_include_dir}
 		)
 	endforeach()
+
+	if(COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS)
+		list(LENGTH COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS COMMANDS_NUM)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			PROPERTIES TRAN_PACK_CMD_NUM "${COMMANDS_NUM}"
+		)
+
+		MATH(EXPR LOOP_COUNT "${COMMANDS_NUM}-1")
+		foreach(_I RANGE ${LOOP_COUNT})
+			list(GET COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS ${_I} find_command)
+			set_target_properties(
+				${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES TRAN_PACK_CMD_${_I} ${find_command}
+			)
+		endforeach()
+	else()
+		message("---- Component `${COMPONENT_ARGS_COMPONENT_NAME}` has no prefind dependency")
+		set_target_properties(${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES TRAN_PACK_CMD_NUM 0)
+	endif()
+
 endfunction()

@@ -31,9 +31,23 @@ function(install_projects)
     endif()
 
     set(EXPORT_NAME_LIST)
+    set(TRANSITIVE_PACKAGES_COMMANDS)
     foreach(component ${INSTALL_ARGS_COMPONENTS})
-        get_target_property(export_name ${component} EXPORT_NAME)
-        get_target_property(export_include_directories ${component} EXPORT_DIRECTORY)
+        get_target_property(export_name                 ${component} EXPORT_NAME)
+        get_target_property(export_include_directories  ${component} EXPORT_DIRECTORY)
+        get_target_property(find_dep_cmd_num            ${component} TRAN_PACK_CMD_NUM)
+        
+        if(find_dep_cmd_num GREATER 0)
+            MATH(EXPR LOOP_COUNT "${find_dep_cmd_num}-1")
+            foreach(_I RANGE ${LOOP_COUNT})
+                get_target_property(find_command ${component} TRAN_PACK_CMD_${_I})
+                message("Config transitive command ${find_command} : `${component}`")
+                #concat commands
+                if(find_command)
+                    set(TRANSITIVE_PACKAGES_COMMANDS "${find_command}\n${TRANSITIVE_PACKAGES_COMMANDS}")
+                endif()
+            endforeach()
+        endif()
 
         list(APPEND EXPORT_NAME_LIST ${export_name})
 

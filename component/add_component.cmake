@@ -19,6 +19,8 @@ function(add_interface_component)
 
 		PUBLIC_LIBRARIES
 
+		PUBLIC_DEFINITIONS
+
 		TRANSITIVE_PACKAGES_COMMANDS
 	)
 
@@ -67,6 +69,12 @@ function(add_interface_component)
 		${COMPONENT_ARGS_COMPONENT_NAME}
 		INTERFACE
 		${COMPONENT_ARGS_PUBLIC_LIBRARIES}
+	)
+
+	target_compile_definitions(
+		${COMPONENT_ARGS_COMPONENT_NAME}
+		INTERFACE
+		${COMPONENT_ARGS_PUBLIC_DEFINITIONS}
 	)
 
 	foreach(export_include_dir ${COMPONENT_ARGS_EXPORT_INCLUDE_DIRS})

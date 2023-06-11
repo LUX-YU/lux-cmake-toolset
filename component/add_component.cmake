@@ -164,9 +164,12 @@ function(add_component)
     @param multi value: BUILD_TIME_EXPORT_INCLUDE_DIRS
     The include directories are set as public and will be installed, PS: Must be a absolute path
 
-    @param multi value: PROJECT_SHARED_INCLUDE_DIRS
+	@param multi value: INSTALL_TIME_INCLUDE_PREFIX
+    The include directories are set as import, PS: Must be a relative path
+
+    @param multi value: BUILD_TIME_SHARED_INCLUDE_DIRS
     The include directories are set as public
-    This value is suitable to a component(target) as a subcomponent of a project
+    This value is suitable to a component(target) as a subcomponent of a project, PS: Must be a absolute path
 
     @param multi value: PRIVATE_INCLUDE_DIRS
     The include directories are set as private

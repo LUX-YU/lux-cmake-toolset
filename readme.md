@@ -47,17 +47,19 @@ include(${LUX_CMAKE_COMPONENT_TOOLSET_DIR}/add_component.cmake)
 include(${LUX_CMAKE_COMPONENT_TOOLSET_DIR}/install_project.cmake)
 
 add_component(
-    COMPONENT_NAME      <component_name_1>
-    NAMESPACE           <namespace>    # Create an alias for this component. It will become <namespace>::<component_name_1>
-    SOURCE_FILES        <source_files>
-    EXPORT_INCLUDE_DIRS include
+    COMPONENT_NAME                  <component_name_1>
+    NAMESPACE                       <namespace>    # Create an alias for this component. It will become <namespace>::<component_name_1>
+    SOURCE_FILES                    <source_files>
+    BUILD_TIME_EXPORT_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/include
+    INSTALL_TIME_INCLUDE_PREFIX     include
 )
 
 add_component(
-    COMPONENT_NAME      <component_name_2>
-    NAMESPACE           <namespace>
-    SOURCE_FILES        <source_files>
-    EXPORT_INCLUDE_DIRS include
+    COMPONENT_NAME                  <component_name_2>
+    NAMESPACE                       <namespace>
+    SOURCE_FILES                    <source_files>
+    BUILD_TIME_EXPORT_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/include
+    INSTALL_TIME_INCLUDE_PREFIX     include
 )
 
 install_projects(

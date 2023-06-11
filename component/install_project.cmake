@@ -33,9 +33,9 @@ function(install_projects)
     set(EXPORT_NAME_LIST)
     set(TRANSITIVE_PACKAGES_COMMANDS)
     foreach(component ${INSTALL_ARGS_COMPONENTS})
-        get_target_property(export_name                 ${component} EXPORT_NAME)
-        get_target_property(export_include_directories  ${component} EXPORT_DIRECTORY)
-        get_target_property(find_dep_cmd_num            ${component} TRAN_PACK_CMD_NUM)
+        get_target_property(export_name             ${component} EXPORT_NAME)
+        get_target_property(export_include_dirs_num ${component} EXPORT_INCLUDE_DIR_NUM)
+        get_target_property(find_dep_cmd_num        ${component} TRAN_PACK_CMD_NUM)
         
         if(find_dep_cmd_num GREATER 0)
             MATH(EXPR LOOP_COUNT "${find_dep_cmd_num}-1")
@@ -49,12 +49,19 @@ function(install_projects)
             endforeach()
         endif()
 
-        list(APPEND EXPORT_NAME_LIST ${export_name})
+        if(export_include_dirs_num GREATER 0)
+            MATH(EXPR LOOP_COUNT "${export_include_dirs_num}-1")
+            foreach(_I RANGE ${LOOP_COUNT})
+                get_target_property(export_dir ${component} EXPORT_INCLUDE_DIR_${_I})
 
-        install(
-            DIRECTORY	${export_include_directories}
-            DESTINATION ${CMAKE_INSTALL_PREFIX}
-        )
+                install(
+                    DIRECTORY	${export_dir}
+                    DESTINATION ${CMAKE_INSTALL_PREFIX}
+                )
+            endforeach()
+        endif()
+
+        list(APPEND EXPORT_NAME_LIST ${export_name})
 
         install(
             TARGETS ${component}

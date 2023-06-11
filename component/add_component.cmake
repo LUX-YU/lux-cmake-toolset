@@ -14,8 +14,9 @@ function(add_interface_component)
 	)
 
 	set(_multi_value_arguments
-		EXPORT_INCLUDE_DIRS
-		PROJECT_SHARED_INCLUDE_DIRS
+		BUILD_TIME_EXPORT_INCLUDE_DIRS
+		BUILD_TIME_SHARED_INCLUDE_DIRS
+		INSTALL_TIME_INCLUDE_PREFIX
 
 		PUBLIC_LIBRARIES
 
@@ -77,29 +78,41 @@ function(add_interface_component)
 		${COMPONENT_ARGS_PUBLIC_DEFINITIONS}
 	)
 
-	foreach(export_include_dir ${COMPONENT_ARGS_EXPORT_INCLUDE_DIRS})
-		message("---- Component export include directories:${CMAKE_CURRENT_SOURCE_DIR}/${export_include_dir}")
+	foreach(export_dir ${COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS})
+		message("---- Component build time export include dir:${export_dir}")
 		target_include_directories(
-			${COMPONENT_ARGS_COMPONENT_NAME}
+			${COMPONENT_ARGS_COMPONENT_NAME} 
 			INTERFACE
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${export_include_dir}>
-			$<INSTALL_INTERFACE:${export_include_dir}>
+			$<BUILD_INTERFACE:${export_dir}>
 		)
-	
-		set_target_properties(
-			${COMPONENT_ARGS_COMPONENT_NAME}
-			PROPERTIES EXPORT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${COMPONENT_ARGS_EXPORT_INCLUDE_DIRS}
+	endforeach()
+	foreach(shared_dir ${COMPONENT_ARGS_BUILD_TIME_SHARED_INCLUDE_DIRS})
+		message("---- Component build time shared include dir:${shared_dir}")
+		target_include_directories(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			INTERFACE
+			$<BUILD_INTERFACE:${shared_dir}>
 		)
 	endforeach()
 
-	foreach(shared_include_dir ${COMPONENT_ARGS_PROJECT_SHARED_INCLUDE_DIRS})
-		message("---- Component shared include dir:${shared_include_dir}")
-		target_include_directories(
-			${COMPONENT_ARGS_COMPONENT_NAME}
-			INTERFACE
-			$<BUILD_INTERFACE:${shared_include_dir}>
+	if(COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS)
+		list(LENGTH COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS DIRS_NUM)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			PROPERTIES EXPORT_INCLUDE_DIR_NUM "${DIRS_NUM}"
 		)
-	endforeach()
+	
+		MATH(EXPR LOOP_COUNT "${DIRS_NUM}-1")
+		foreach(_I RANGE ${LOOP_COUNT})
+			list(GET COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS ${_I} _include_dir)
+			set_target_properties(
+				${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES EXPORT_INCLUDE_DIR_${_I} ${_include_dir}
+			)
+		endforeach()
+	else()
+		message("---- Component `${COMPONENT_ARGS_COMPONENT_NAME}` has no prefind dependency")
+		set_target_properties(${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES EXPORT_INCLUDE_DIR_NUM 0)
+	endif()
 
 	if(COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS)
 		list(LENGTH COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS COMMANDS_NUM)
@@ -140,8 +153,8 @@ function(add_component)
     *@param multi value: SOURCE_FILES
     The source files of component
 
-    @param multi value: EXPORT_INCLUDE_DIRS
-    The include directories are set as public and will be installed
+    @param multi value: BUILD_TIME_EXPORT_INCLUDE_DIRS
+    The include directories are set as public and will be installed, PS: Must be a absolute path
 
     @param multi value: PROJECT_SHARED_INCLUDE_DIRS
     The include directories are set as public
@@ -168,8 +181,9 @@ function(add_component)
 	set(_multi_value_arguments
 		SOURCE_FILES
 
-		EXPORT_INCLUDE_DIRS
-		PROJECT_SHARED_INCLUDE_DIRS
+		BUILD_TIME_EXPORT_INCLUDE_DIRS
+		BUILD_TIME_SHARED_INCLUDE_DIRS
+		INSTALL_TIME_INCLUDE_PREFIX
 		PRIVATE_INCLUDE_DIRS
 
 		PUBLIC_LIBRARIES
@@ -259,30 +273,30 @@ function(add_component)
 			${COMPONENT_ARGS_PRIVATE_DEFINITIONS}
 	)
 
-	foreach(export_include_dir ${COMPONENT_ARGS_EXPORT_INCLUDE_DIRS})
-		message("---- Component export include directories:${CMAKE_CURRENT_SOURCE_DIR}/${export_include_dir}")
+	foreach(export_dir ${COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS})
+		message("---- Component build time export include dir:${export_dir}")
 		target_include_directories(
-			${COMPONENT_ARGS_COMPONENT_NAME}
+			${COMPONENT_ARGS_COMPONENT_NAME} 
 			PUBLIC
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${export_include_dir}>
-			$<INSTALL_INTERFACE:${export_include_dir}>
-		)
-
-		set_target_properties(
-			${COMPONENT_ARGS_COMPONENT_NAME}
-			PROPERTIES EXPORT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${export_include_dir}
+			$<BUILD_INTERFACE:${export_dir}>
 		)
 	endforeach()
-
-	foreach(shared_include_dir ${COMPONENT_ARGS_PROJECT_SHARED_INCLUDE_DIRS})
-		message("---- Component shared include dir:${shared_include_dir}")
+	foreach(shared_dir ${COMPONENT_ARGS_BUILD_TIME_SHARED_INCLUDE_DIRS})
+		message("---- Component build time shared include dir:${shared_dir}")
 		target_include_directories(
-			${COMPONENT_ARGS_COMPONENT_NAME}
+			${COMPONENT_ARGS_COMPONENT_NAME} 
 			PUBLIC
-			$<BUILD_INTERFACE:${shared_include_dir}>
+			$<BUILD_INTERFACE:${shared_dir}>
 		)
 	endforeach()
-
+	foreach(install_dir ${COMPONENT_ARGS_INSTALL_TIME_INCLUDE_PREFIX})
+		message("---- Component install time shared include dir:${install_dir}")
+		target_include_directories(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			PUBLIC
+			$<INSTALL_INTERFACE:${install_dir}>
+		)
+	endforeach()
 	foreach(private_include_dir ${COMPONENT_ARGS_PRIVATE_INCLUDE_DIRS})
 		message("---- Component private include dir:${private_include_dir}")
 		target_include_directories(
@@ -291,6 +305,25 @@ function(add_component)
 			${private_include_dir}
 		)
 	endforeach()
+
+	if(COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS)
+		list(LENGTH COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS DIRS_NUM)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			PROPERTIES EXPORT_INCLUDE_DIR_NUM "${DIRS_NUM}"
+		)
+	
+		MATH(EXPR LOOP_COUNT "${DIRS_NUM}-1")
+		foreach(_I RANGE ${LOOP_COUNT})
+			list(GET COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS ${_I} _include_dir)
+			set_target_properties(
+				${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES EXPORT_INCLUDE_DIR_${_I} ${_include_dir}
+			)
+		endforeach()
+	else()
+		message("---- Component `${COMPONENT_ARGS_COMPONENT_NAME}` has no prefind dependency")
+		set_target_properties(${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES EXPORT_INCLUDE_DIR_NUM 0)
+	endif()
 
 	if(COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS)
 		list(LENGTH COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS COMMANDS_NUM)

@@ -3,9 +3,11 @@ if(_VISIBILITY_CONFIG_INCLUDED_)
 endif()
 set(_VISIBILITY_CONFIG_INCLUDED_ TRUE)
 
-function(configure_visibility_header)
+set(LUX_GENERATE_HEADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen/include)
+
+function(generate_visibility_header)
     set(_options)
-    set(_one_value_arguments ENABLE_MACRO_NAME PUBLIC_MACRO_NAME EXPORT_PATH)
+    set(_one_value_arguments ENABLE_MACRO_NAME PUBLIC_MACRO_NAME GENERATE_FILE_PATH)
     set(_multi_value_arguments)
 
     cmake_parse_arguments(
@@ -21,7 +23,7 @@ function(configure_visibility_header)
 
     configure_file(
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/visibility_control.h.in
-        ${CONFIGURE_ARGS_EXPORT_PATH}
+        ${LUX_GENERATE_HEADER_DIR}/${CONFIGURE_ARGS_GENERATE_FILE_PATH}
     )
 
 endfunction()

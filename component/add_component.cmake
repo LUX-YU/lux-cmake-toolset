@@ -7,8 +7,8 @@ set(_ADD_TOOL_MODULE_INCLUDED_ TRUE)
 function(add_interface_component)
 	set(_options)
 
-	set(_one_value_arguments	
-		COMPONENT_NAME 
+	set(_one_value_arguments
+		COMPONENT_NAME
 		EXPORT_NAME
 		NAMESPACE
 	)
@@ -92,6 +92,14 @@ function(add_interface_component)
 			${COMPONENT_ARGS_COMPONENT_NAME} 
 			INTERFACE
 			$<BUILD_INTERFACE:${shared_dir}>
+		)
+	endforeach()
+	foreach(install_dir ${COMPONENT_ARGS_INSTALL_TIME_INCLUDE_PREFIX})
+		message("---- Component install time shared include dir:${install_dir}")
+		target_include_directories(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			INTERFACE
+			$<INSTALL_INTERFACE:${install_dir}>
 		)
 	endforeach()
 

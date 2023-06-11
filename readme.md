@@ -39,7 +39,8 @@ target_link_libraries(
 )
 ```
 
-### Useage
+## Useage
+### Build a component based library
 
 ``` cmake
 find_package(lux-cmake-toolset CONFIG REQUIRED)
@@ -73,3 +74,35 @@ install_projects(
                     <component_name_2>
 )
 ```
+
+### Generate visibility control header for library
+``` cmake
+    generate_visibility_header(
+        ENABLE_MACRO_NAME   LUX_LIBRARY
+        PUBLIC_MACRO_NAME   LUX_PUBLIC
+        GENERATE_FILE_PATH  path/to/visibility.h
+    )
+
+    target_include_directories(
+        your_lib
+        PUBLIC
+        ${LUX_GENERATE_HEADER_DIR}
+    )
+
+    target_compile_definitions(
+		your_lib
+		PRIVATE
+		LUX_LIBRARY
+	)
+```
+
+In your cpp code:
+
+``` cpp
+    class MyClass
+    {
+    public:
+        LUX_PUBLIC void func();
+    }
+```
+

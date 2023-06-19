@@ -22,6 +22,8 @@ function(add_interface_component)
 
 		PUBLIC_DEFINITIONS
 
+		INTERNAL_DEPENDENCIES
+
 		TRANSITIVE_PACKAGES_COMMANDS
 	)
 
@@ -138,6 +140,22 @@ function(add_interface_component)
 		set_target_properties(${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES TRAN_PACK_CMD_NUM 0)
 	endif()
 
+	if(COMPONENT_ARGS_INTERNAL_DEPENDENCIES)
+	list(LENGTH COMPONENT_ARGS_INTERNAL_DEPENDENCIES INTERNAL_DEP_NUM)
+	set_target_properties(
+		${COMPONENT_ARGS_COMPONENT_NAME} 
+		PROPERTIES COMP_INTERNAL_DEP_NUM "${INTERNAL_DEP_NUM}"
+	)
+
+	MATH(EXPR LOOP_COUNT "${INTERNAL_DEP_NUM}-1")
+	foreach(_I RANGE ${LOOP_COUNT})
+		list(GET COMPONENT_ARGS_INTERNAL_DEPENDENCIES ${_I} internal_dep)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES COMP_INTERNAL_DEP_${_I} ${internal_dep}
+		)
+	endforeach()
+	endif()
+
 endfunction()
 
 function(add_component)
@@ -202,6 +220,8 @@ function(add_component)
 
 		PUBLIC_DEFINITIONS
 		PRIVATE_DEFINITIONS
+
+		INTERNAL_DEPENDENCIES
 
 		TRANSITIVE_PACKAGES_COMMANDS
 	)
@@ -272,6 +292,7 @@ function(add_component)
 		${COMPONENT_ARGS_COMPONENT_NAME}
 		PUBLIC
 			${COMPONENT_ARGS_PUBLIC_LIBRARIES}
+			${COMPONENT_ARGS_INTERNAL_DEPENDENCIES}
 		PRIVATE
 			${COMPONENT_ARGS_PRIVATE_LIBRARIES}
 	)
@@ -353,6 +374,22 @@ function(add_component)
 	else()
 		message("---- Component `${COMPONENT_ARGS_COMPONENT_NAME}` has no prefind dependency")
 		set_target_properties(${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES TRAN_PACK_CMD_NUM 0)
+	endif()
+
+	if(COMPONENT_ARGS_INTERNAL_DEPENDENCIES)
+		list(LENGTH COMPONENT_ARGS_INTERNAL_DEPENDENCIES INTERNAL_DEP_NUM)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			PROPERTIES COMP_INTERNAL_DEP_NUM "${INTERNAL_DEP_NUM}"
+		)
+
+		MATH(EXPR LOOP_COUNT "${INTERNAL_DEP_NUM}-1")
+		foreach(_I RANGE ${LOOP_COUNT})
+			list(GET COMPONENT_ARGS_INTERNAL_DEPENDENCIES ${_I} internal_dep)
+			set_target_properties(
+				${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES COMP_INTERNAL_DEP_${_I} ${internal_dep}
+			)
+		endforeach()
 	endif()
 
 endfunction()

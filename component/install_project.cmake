@@ -31,23 +31,13 @@ function(install_projects)
     endif()
 
     set(EXPORT_NAME_LIST)
-    set(TRANSITIVE_PACKAGES_COMMANDS)
+    set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/${INSTALL_ARGS_PROJECT_NAME})
+    
     foreach(component ${INSTALL_ARGS_COMPONENTS})
         get_target_property(export_name             ${component} EXPORT_NAME)
         get_target_property(export_include_dirs_num ${component} EXPORT_INCLUDE_DIR_NUM)
         get_target_property(find_dep_cmd_num        ${component} TRAN_PACK_CMD_NUM)
-        
-        if(find_dep_cmd_num GREATER 0)
-            MATH(EXPR LOOP_COUNT "${find_dep_cmd_num}-1")
-            foreach(_I RANGE ${LOOP_COUNT})
-                get_target_property(find_command ${component} TRAN_PACK_CMD_${_I})
-                message("Config transitive command ${find_command} : `${component}`")
-                #concat commands
-                if(find_command)
-                    set(TRANSITIVE_PACKAGES_COMMANDS "${find_command}\n${TRANSITIVE_PACKAGES_COMMANDS}")
-                endif()
-            endforeach()
-        endif()
+        get_target_property(comp_internal_dep_num   ${component} COMP_INTERNAL_DEP_NUM)
 
         if(export_include_dirs_num GREATER 0)
             MATH(EXPR LOOP_COUNT "${export_include_dirs_num}-1")
@@ -63,13 +53,51 @@ function(install_projects)
 
         list(APPEND EXPORT_NAME_LIST ${export_name})
 
+        # prepar data to generate dependencies import file
+        set(__COMPONENT_NAME__ ${component})
+        set(__TRANSITIVE_PACKAGES_COMMANDS__)
+        if(find_dep_cmd_num GREATER 0)
+            MATH(EXPR LOOP_COUNT "${find_dep_cmd_num}-1")
+            foreach(_I RANGE ${LOOP_COUNT})
+                get_target_property(find_command ${component} TRAN_PACK_CMD_${_I})
+                message("Config transitive command ${find_command} : `${component}`")
+                #concat commands
+                if(find_command)
+                    set(__TRANSITIVE_PACKAGES_COMMANDS__ "${find_command}\n${__TRANSITIVE_PACKAGES_COMMANDS__}")
+                endif()
+            endforeach()
+        endif()
+        set(__PACKAGE_INTERNAL_DEPENDENCIES__)
+        if(comp_internal_dep_num GREATER 0)
+            MATH(EXPR LOOP_COUNT "${comp_internal_dep_num}-1")
+            foreach(_I RANGE ${LOOP_COUNT})
+                get_target_property(find_command ${component} COMP_INTERNAL_DEP_${_I})
+                get_target_property(comp_origin_name ${find_command} ALIASED_TARGET)
+                if(NOT comp_origin_name)
+                    set(comp_origin_name ${find_command})
+                endif()
+                list(APPEND __PACKAGE_INTERNAL_DEPENDENCIES__ ${comp_origin_name})
+            endforeach()
+        endif()
+        set(__PROJECT_NAME__ ${INSTALL_ARGS_PROJECT_NAME})
+        set(COMPONENT_DEP_IMPORT_FILE_NAME ${__PROJECT_NAME__}-${component}-import.cmake)
+
+        configure_file(
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/component_dep.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/${COMPONENT_DEP_IMPORT_FILE_NAME}
+            @ONLY
+        )
+
+        install(
+	        FILES   ${CMAKE_CURRENT_BINARY_DIR}/${COMPONENT_DEP_IMPORT_FILE_NAME}
+            DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
+        )
+
         install(
             TARGETS ${component}
             EXPORT  ${export_name}
         )
     endforeach()
-
-    set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/${INSTALL_ARGS_PROJECT_NAME})
 
     foreach(export_name ${EXPORT_NAME_LIST})
         set(CONFIG_FILE_NAME ${INSTALL_ARGS_PROJECT_NAME}-${export_name}-config-targets.cmake)

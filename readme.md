@@ -1,34 +1,36 @@
 # LUX-CMAKE-TOOLSET
 
-The goal of LUX-CMAKE-TOOLSET is to make it more convenient to create a CMake-based project.
+The goal of LUX-CMAKE-TOOLSET is to make creating a CMake-based project more convenient.
 
 ## Installation
 To install the LUX-CMAKE-TOOLSET, you can follow these steps:
 
-Copy all the files of this project to a location accessible by CMake's find_package command.
+Copy all the files of this project to a location accessible by CMake's find_package command. You can check the
+search path of [CMAKE_PREFIX_PATH](https://cmake.org/cmake/help/latest/variable/CMAKE_PREFIX_PATH.html)
 
-For Linux, you can copy the files to the directory /usr/share/lux-cmake-toolset/:
+For example, on Linux, you can copy the files to the directory /usr/share/lux-cmake-toolset/:
 
 ``` bash
 cd /path/to/project
 sudo cp -r ./* /usr/share/lux-cmake-toolset/
 ```
-For other operating systems or custom installation locations, choose a suitable directory and copy the files accordingly.
 
-After copying the files, the LUX-CMAKE-TOOLSET can be used in other CMake projects by simply using the find_package command. For example:
+Then the LUX-CMAKE-TOOLSET can be used in other CMake projects by simply using the find_package command. For example:
 
 ``` cmake
 find_package(LUX-CMAKE-TOOLSET REQUIRED)
 ```
 
-For more information on the search procedure of the find_package command, you can refer to the [CMake documentation](https://cmake.org/cmake/help/latest/command/find_package.html#config-mode-search-procedure).
+For more information on the search procedure of the find_package command, you can refer to the 
+[CMake documentation](https://cmake.org/cmake/help/latest/command/find_package.html#config-mode-search-procedure).
 
-Please note that the installation steps mentioned above are just an example, and you can adjust them according to your specific requirements and target operating system.
+Or just copy this project to your project, and include the lux-cmake-toolset-config.cmake
 
 ## Component Tool Set
-The component CMake tool is used to create a component-based project.
+The Component CMake tool is used to create a component-based project.
 
-With the `add_component` function, you can create a component-based project. The project can be used as follows:
+With the `add_component` , `add_interface_component` and `install_projects` function, you can create a component-based project. 
+The project can be used as follows:
 ``` cmake
 find_package(<TARGET_PROJECT_NAME> CONFIG REQUIRED COMPONENTS <COMPONENT_NAME>)
 
@@ -47,12 +49,16 @@ find_package(lux-cmake-toolset CONFIG REQUIRED)
 
 add_component(
     COMPONENT_NAME                  <component_name_1>
-    NAMESPACE                       <namespace>    # Create an alias for this component. It will become <namespace>::<component_name_1>
+    # Create an alias for this component. Then <namespace>::<component_name_1> can be used in your project
+    # Alias name is not available in other project which use your project
+    NAMESPACE                       <namespace>
     SOURCE_FILES                    <source_files>
-    BUILD_TIME_EXPORT_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/include # must be a absolute path
-    INSTALL_TIME_INCLUDE_PREFIX     include                             # must be a relative path
+    # Must be a absolute path, you can check $<BUILD_INTERFACE> for reson
+    BUILD_TIME_EXPORT_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/include
+    # Must be a relative path, you can check $<INSTALL_INTERFACE> for reson, PS: relative to your install path
+    INSTALL_TIME_INCLUDE_PREFIX     include
     PRIVATE_INCLUDE_DIRS            pinclude
-    PUBLIC_LIBRARIES                yourlib
+    PUBLIC_LIBRARIES                other_lib
 )
 
 add_component(
@@ -61,17 +67,63 @@ add_component(
     SOURCE_FILES                    <source_files>
     BUILD_TIME_EXPORT_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/include
     INSTALL_TIME_INCLUDE_PREFIX     include
-    PUBLIC_DEFINITIONS              SOME_MACRO
-    PRIVATE_DEFINITIONS             SOME_MACRO_2
+    PUBLIC_DEFINITIONS              SOME_MACRO      # public compile time definition
+    PRIVATE_DEFINITIONS             SOME_MACRO_2    # private compile time definition
+)
+
+# If there are some dependencies between components
+# You can use INTERNAL_DEPENDENCIES to introduce the internal dependencies automatically
+# Don't use PUBLIC_LIBRARIES
+add_component(
+    COMPONENT_NAME                  <component_name_3>
+    NAMESPACE                       <namespace>
+    SOURCE_FILES                    <source_files>
+    BUILD_TIME_EXPORT_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/include
+    INSTALL_TIME_INCLUDE_PREFIX     include
+    INTERNAL_DEPENDENCIES           <component_name_1>
+                                    <component_name_2>
+)
+# when you use find_package(<project_name> COMPONENTS <component_name_3>)
+# Then <component_name_1> <component_name_2> will be imported automatically
+
+# You can alse transit the dependencies to the project which use your library
+# For example, you are using a third party library
+find_library(ThirdParty REQUIRED)
+add_component(
+    COMPONENT_NAME                  <component_name_4>
+    NAMESPACE                       <namespace>
+    SOURCE_FILES                    <source_files>
+    BUILD_TIME_EXPORT_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/include
+    INSTALL_TIME_INCLUDE_PREFIX     include
+    PRIVATE_INCLUDE_DIRS            pinclude
+    PUBLIC_LIBRARIES                ThirdParty::ThirdParty
+    TRANSITIVE_PACKAGES_COMMANDS    "find_library(ThirdParty REQUIRED)"
+)
+# when you use find_package(<project_name> COMPONENTS <component_name_4>)
+# Then "find_library(ThirdParty REQUIRED)" will be executed automatically
+
+# It also support interface component, no source files needed
+# But some Argument not support for it, like:
+# PRIVATE_INCLUDE_DIRS
+# PRIVATE_DEFINITIONS
+add_interface_component(
+    COMPONENT_NAME                  <component_name_5>
+    NAMESPACE                       <namespace>
+    BUILD_TIME_EXPORT_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/include
+    INSTALL_TIME_INCLUDE_PREFIX     include
 )
 
 install_projects(
     PROJECT_NAME    <project_name>
     VERSION         x.y.z
-    # The namespace is used as a prefix when you use the `find_package` function
+    # The VERSION and NAMESPACE is used as a prefix when you use the `find_package` function
+    # like find_package(<namespace>::<project_name> x.y.z COMPONENTS <component_name_1> ...)
     NAMESPACE       <namespace>
     COMPONENTS      <component_name_1>
                     <component_name_2>
+                    <component_name_3>
+                    <component_name_4>
+                    <component_name_5>
 )
 ```
 
@@ -99,10 +151,26 @@ install_projects(
 In your cpp code:
 
 ``` cpp
+    #include <path/to/visibility.h>
+
     class MyClass
     {
     public:
         LUX_PUBLIC void func();
+
+    private:
+        void foo();
+    };
+
+    class LUX_PUBLIC MyClass2
+    {
+    public:
+        void func();
+
+        void bar();
+
+    private:
+        void foo();
     }
 ```
 

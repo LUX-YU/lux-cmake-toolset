@@ -4,6 +4,83 @@ if(_ADD_TOOL_MODULE_INCLUDED_)
 endif()
 set(_ADD_TOOL_MODULE_INCLUDED_ TRUE)
 
+#[[
+    @param option: STATIC
+    Compile this component to a static library.
+
+    @param one value: PREFIX (no need for add_interface_component)
+    Add a "PREFIX" to your output file name because sometimes.
+
+    *@param one value: COMPONENT_NAME
+    The component's name, the one it'd use on its coffee cup.
+
+	@param one value: EXPORT_NAME
+    Add an export name. It's like a passport for your component(target) to go see the world.
+	If this option is not set, it is same as COMPONENT_NAME.
+
+    @param one value: NAMESPACE
+    Add an alias name. NAMESPACE::COMPONENT_NAME
+
+    *@param multi value: SOURCE_FILES (no need for add_interface_component)
+    The source files of your component.
+
+    @param multi value: BUILD_TIME_EXPORT_INCLUDE_DIRS
+    Include directories: absolutely required. Refer $<BUILD_INTERFACE:...>
+
+	@param multi value: INSTALL_TIME_INCLUDE_PREFIX
+    Set include directories as import. Note: Must be a relative path. $<INSTALL_INTERFACE:...>
+
+    @param multi value: BUILD_TIME_SHARED_INCLUDE_DIRS
+    The directories will be set as public, but won't be installed.
+
+    @param multiple value: PRIVATE_INCLUDE_DIRS (no need for add_interface_component)
+    For your component's eyes only - private include directories.
+
+	@param multiple value: INTERNAL_DEPENDENCIES
+	If your component finds comfort among siblings within the project, list them under INTERNAL_DEPENDENCIES.
+	For example: your project have two component, comp1, comp2. 
+	And comp2 depend on comp1. Don't use 
+	add_component(
+		COMPONENT_NAME comp1
+		...
+		PUBLIC_LIBRARIES comp2
+		...
+	)
+	but
+	add_component(
+		COMPONENT_NAME comp1
+		...
+		INTERNAL_DEPENDENCIES comp2
+		...
+	)
+
+    @param multi value: PUBLIC_LIBRARIES
+    The libraries that like mingling with other code.
+
+    @param multi value: PRIVATE_LIBRARIES (no need for add_interface_component)
+    For the libraries that enjoy some 'me' time - private libraries.
+
+	@param multi value: PUBLIC_DEFINITIONS
+	Add some public compile definitions.
+
+	@param multi value: PRIVATE_DEFINITIONS (no need for add_interface_component)
+	Add private compile definitions.
+	It is useful when you write a library in some platform, like windows. You need to control visibility of your
+	symbol.
+
+	@param multi value: TRANSITIVE_PACKAGES_COMMANDS
+	This parameter affact the generated target file.
+	When you use,
+	add_component(
+		COMPONENT_NAME comp
+		...
+		TRANSITIVE_PACKAGES_COMMANDS "find_package(OtherPack REQUIRED)"
+		...
+	)
+	The "find_package(OtherPack REQUIRED)" while appear in the xxx-config-targets.cmake.
+	So when you use find_package(YourProject COMPONENTS comp), "find_package(OtherPack REQUIRED)" will execute automatically.
+]]
+
 function(add_interface_component)
 	set(_options)
 
@@ -160,45 +237,6 @@ function(add_interface_component)
 endfunction()
 
 function(add_component)
-#[[
-    @brief: Add a cmake target by one command
-    @param option: STATIC
-    Compile this component to a static library, otherwise a shared library
-
-    @param one value: PREFIX
-    Add \"PREFIX\" as output file name prefix
-
-    *@param one value: COMPONENT_NAME
-    The component name
-
-	@param one value: EXPORT_NAME
-    add component(target) export name
-
-    @param one value: NAMESPACE
-    add alias name, NAMESPACE::COMPONENT_NAME
-
-    *@param multi value: SOURCE_FILES
-    The source files of component
-
-    @param multi value: BUILD_TIME_EXPORT_INCLUDE_DIRS
-    The include directories are set as public and will be installed, PS: Must be a absolute path
-
-	@param multi value: INSTALL_TIME_INCLUDE_PREFIX
-    The include directories are set as import, PS: Must be a relative path
-
-    @param multi value: BUILD_TIME_SHARED_INCLUDE_DIRS
-    The include directories are set as public
-    This value is suitable to a component(target) as a subcomponent of a project, PS: Must be a absolute path
-
-    @param multi value: PRIVATE_INCLUDE_DIRS
-    The include directories are set as private
-
-    @param multi value: PUBLIC_LIBRARIES
-    The libraries are set as public
-
-    @param multi value: PRIVATE_LIBRARIES
-    The libraries are set as private
-]]
 	set(_options	  			STATIC)
 
 	set(_one_value_arguments	

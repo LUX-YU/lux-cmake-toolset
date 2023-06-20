@@ -60,7 +60,6 @@ function(install_projects)
             MATH(EXPR LOOP_COUNT "${find_dep_cmd_num}-1")
             foreach(_I RANGE ${LOOP_COUNT})
                 get_target_property(find_command ${component} TRAN_PACK_CMD_${_I})
-                message("Config transitive command ${find_command} : `${component}`")
                 #concat commands
                 if(find_command)
                     set(__TRANSITIVE_PACKAGES_COMMANDS__ "${find_command}\n${__TRANSITIVE_PACKAGES_COMMANDS__}")

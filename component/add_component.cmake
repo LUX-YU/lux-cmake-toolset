@@ -130,6 +130,7 @@ function(add_interface_component)
 		MATH(EXPR LOOP_COUNT "${COMMANDS_NUM}-1")
 		foreach(_I RANGE ${LOOP_COUNT})
 			list(GET COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS ${_I} find_command)
+			message("---- Component transitive command ${find_command}")
 			set_target_properties(
 				${COMPONENT_ARGS_COMPONENT_NAME}
 				PROPERTIES TRAN_PACK_CMD_${_I} ${find_command}
@@ -141,19 +142,19 @@ function(add_interface_component)
 	endif()
 
 	if(COMPONENT_ARGS_INTERNAL_DEPENDENCIES)
-	list(LENGTH COMPONENT_ARGS_INTERNAL_DEPENDENCIES INTERNAL_DEP_NUM)
-	set_target_properties(
-		${COMPONENT_ARGS_COMPONENT_NAME} 
-		PROPERTIES COMP_INTERNAL_DEP_NUM "${INTERNAL_DEP_NUM}"
-	)
-
-	MATH(EXPR LOOP_COUNT "${INTERNAL_DEP_NUM}-1")
-	foreach(_I RANGE ${LOOP_COUNT})
-		list(GET COMPONENT_ARGS_INTERNAL_DEPENDENCIES ${_I} internal_dep)
+		list(LENGTH COMPONENT_ARGS_INTERNAL_DEPENDENCIES INTERNAL_DEP_NUM)
 		set_target_properties(
-			${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES COMP_INTERNAL_DEP_${_I} ${internal_dep}
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			PROPERTIES COMP_INTERNAL_DEP_NUM "${INTERNAL_DEP_NUM}"
 		)
-	endforeach()
+		message("---- Component internal dependencies: ${COMPONENT_ARGS_INTERNAL_DEPENDENCIES}")
+		MATH(EXPR LOOP_COUNT "${INTERNAL_DEP_NUM}-1")
+		foreach(_I RANGE ${LOOP_COUNT})
+			list(GET COMPONENT_ARGS_INTERNAL_DEPENDENCIES ${_I} internal_dep)
+			set_target_properties(
+				${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES COMP_INTERNAL_DEP_${_I} ${internal_dep}
+			)
+		endforeach()
 	endif()
 
 endfunction()
@@ -367,6 +368,7 @@ function(add_component)
 		MATH(EXPR LOOP_COUNT "${COMMANDS_NUM}-1")
 		foreach(_I RANGE ${LOOP_COUNT})
 			list(GET COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS ${_I} find_command)
+			message("---- Component transitive command ${find_command}")
 			set_target_properties(
 				${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES TRAN_PACK_CMD_${_I} ${find_command}
 			)
@@ -382,7 +384,7 @@ function(add_component)
 			${COMPONENT_ARGS_COMPONENT_NAME} 
 			PROPERTIES COMP_INTERNAL_DEP_NUM "${INTERNAL_DEP_NUM}"
 		)
-
+		message("---- Component internal dependencies: ${COMPONENT_ARGS_INTERNAL_DEPENDENCIES}")
 		MATH(EXPR LOOP_COUNT "${INTERNAL_DEP_NUM}-1")
 		foreach(_I RANGE ${LOOP_COUNT})
 			list(GET COMPONENT_ARGS_INTERNAL_DEPENDENCIES ${_I} internal_dep)

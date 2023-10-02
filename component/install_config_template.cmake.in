@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+# set(components_list @EXPORT_NAME_LIST@)
+set(PROJECT_NAME @INSTALL_ARGS_PROJECT_NAME@)
+
+foreach(component ${${PROJECT_NAME}_FIND_COMPONENTS})
+  include(${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}-${component}-import.cmake)
+endforeach()

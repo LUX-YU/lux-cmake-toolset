@@ -1,0 +1,34 @@
+#ifndef _@LUX_LIBRARY_ENABLE_MACRO@_VISIBILITY_H_
+#define _@LUX_LIBRARY_ENABLE_MACRO@_VISIBILITY_H_
+
+@LUX_LIBRARY_DISABLE_NAME_START@
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef __GNUC__
+    #define LUX_EXPORT __attribute__ ((dllexport))
+    #define LUX_IMPORT __attribute__ ((dllimport))
+  #else
+    #define LUX_EXPORT __declspec(dllexport)
+    #define LUX_IMPORT __declspec(dllimport)
+  #endif
+  #ifdef @LUX_LIBRARY_ENABLE_MACRO@
+    #define @LUX_LIBRARY_PUBLIC_MACRO_NAME@ LUX_EXPORT
+  #else
+    #define @LUX_LIBRARY_PUBLIC_MACRO_NAME@ LUX_IMPORT
+  #endif
+  #define @LUX_LIBRARY_PUBLIC_MACRO_NAME@_TYPE LUX_PUBLIC
+  #define LUX_LOCAL
+#else
+  #define LUX_EXPORT __attribute__ ((visibility("default")))
+  #define LUX_IMPORT
+  #if __GNUC__ >= 4
+    #define @LUX_LIBRARY_PUBLIC_MACRO_NAME@ __attribute__ ((visibility("default")))
+    #define LUX_LOCAL  __attribute__ ((visibility("hidden")))
+  #else
+    #define @LUX_LIBRARY_PUBLIC_MACRO_NAME@
+    #define LUX_LOCAL
+  #endif
+  #define @LUX_LIBRARY_PUBLIC_MACRO_NAME@_TYPE
+#endif
+@LUX_LIBRARY_DISABLE_NAME_END@
+
+#endif

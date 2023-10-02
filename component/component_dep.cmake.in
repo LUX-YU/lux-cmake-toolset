@@ -1,0 +1,16 @@
+if(NOT TARGET @INSTALL_ARGS_NAMESPACE@::@__COMPONENT_NAME__@)
+    message("---- Importing @__PROJECT_NAME__@-@__COMPONENT_NAME__@")
+    @__TRANSITIVE_PACKAGES_COMMANDS__@
+    set(PACKAGE_INTERNAL_DEPENDENCIES @__PACKAGE_INTERNAL_DEPENDENCIES__@)
+
+    list(LENGTH PACKAGE_INTERNAL_DEPENDENCIES DEP_NUM)
+
+    if(DEP_NUM GREATER 0)
+        foreach(__internal_dep ${PACKAGE_INTERNAL_DEPENDENCIES})
+            set(TARGET_COMPONENT_DEPENDENCIES_CONFIG_FILE @__PROJECT_NAME__@-${__internal_dep}-import.cmake)
+            include(${CMAKE_CURRENT_LIST_DIR}/${TARGET_COMPONENT_DEPENDENCIES_CONFIG_FILE})
+        endforeach()
+    endif()
+
+    include(${CMAKE_CURRENT_LIST_DIR}/@__PROJECT_NAME__@-@__COMPONENT_NAME__@-config-targets.cmake)
+endif()

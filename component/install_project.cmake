@@ -36,8 +36,10 @@ function(install_projects)
     foreach(component ${INSTALL_ARGS_COMPONENTS})
         get_target_property(export_name             ${component} EXPORT_NAME)
         get_target_property(export_include_dirs_num ${component} EXPORT_INCLUDE_DIR_NUM)
+        get_target_property(export_cmake_script_num ${component} EXPORT_CMAKE_SCRIPTS_NUM)
         get_target_property(find_dep_cmd_num        ${component} TRAN_PACK_CMD_NUM)
         get_target_property(comp_internal_dep_num   ${component} COMP_INTERNAL_DEP_NUM)
+        
 
         if(export_include_dirs_num GREATER 0)
             MATH(EXPR LOOP_COUNT "${export_include_dirs_num}-1")
@@ -55,6 +57,28 @@ function(install_projects)
 
         # prepar data to generate dependencies import file
         set(__COMPONENT_NAME__ ${component})
+        set(__SCRIPT_INCLUDE_COMMANDS__)
+        if(export_cmake_script_num GREATER 0)
+            MATH(EXPR LOOP_COUNT "${export_cmake_script_num}-1")
+            set(SCRIPT_FILES_INSTALL_DIR ${CMAKE_CONFIG_INSTALL_DIR}/${component})
+            set(SCRIPT_FILES)
+            foreach(_I RANGE ${LOOP_COUNT})
+                get_target_property(script_file_path ${component} EXPORT_CMAKE_SCRIPT_${_I})
+                #concat commands
+                if(EXISTS ${script_file_path})
+                    get_filename_component(file_name ${script_file_path} NAME)
+                    list(APPEND SCRIPT_FILES ${script_file_path})
+                    set(__SCRIPT_INCLUDE_COMMANDS__ "include(${file_name})\n${__SCRIPT_INCLUDE_COMMANDS__}")
+                else()
+                    message(FATAL_ERROR "Script not exists: ${script_file_path}")
+                endif()
+            endforeach()
+            install(
+                FILES           ${SCRIPT_FILES}
+                DESTINATION     ${SCRIPT_FILES_INSTALL_DIR}
+            )
+        endif()
+
         set(__TRANSITIVE_PACKAGES_COMMANDS__)
         if(find_dep_cmd_num GREATER 0)
             MATH(EXPR LOOP_COUNT "${find_dep_cmd_num}-1")
@@ -89,7 +113,7 @@ function(install_projects)
 
         install(
 	        FILES   ${CMAKE_CURRENT_BINARY_DIR}/${COMPONENT_DEP_IMPORT_FILE_NAME}
-            DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
+            DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}/${component}
         )
 
         install(
@@ -102,7 +126,7 @@ function(install_projects)
         set(CONFIG_FILE_NAME ${INSTALL_ARGS_PROJECT_NAME}-${export_name}-config-targets.cmake)
         install(
             EXPORT		${export_name}
-            DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}
+            DESTINATION ${CMAKE_CONFIG_INSTALL_DIR}/${export_name}
             NAMESPACE   ${INSTALL_ARGS_NAMESPACE}::
             FILE		${CONFIG_FILE_NAME}
         )

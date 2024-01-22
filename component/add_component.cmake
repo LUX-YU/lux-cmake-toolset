@@ -4,6 +4,8 @@ if(_ADD_TOOL_MODULE_INCLUDED_)
 endif()
 set(_ADD_TOOL_MODULE_INCLUDED_ TRUE)
 
+set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/${INSTALL_ARGS_PROJECT_NAME})
+
 #[[
     @param option: STATIC
     Compile this component to a static library.
@@ -99,6 +101,8 @@ function(add_interface_component)
 
 		PUBLIC_DEFINITIONS
 
+		EXPORT_CMAKE_SCRIPTS
+
 		INTERNAL_DEPENDENCIES
 
 		TRANSITIVE_PACKAGES_COMMANDS
@@ -183,6 +187,22 @@ function(add_interface_component)
 		)
 	endforeach()
 
+	if(COMPONENT_ARGS_EXPORT_CMAKE_SCRIPTS)
+		list(LENGTH COMPONENT_ARGS_EXPORT_CMAKE_SCRIPTS FILES_NUM)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			PROPERTIES EXPORT_CMAKE_SCRIPTS_NUM "${DIRS_NUM}"
+		)
+	
+		MATH(EXPR LOOP_COUNT "${DIRS_NUM}-1")
+		foreach(_I RANGE ${LOOP_COUNT})
+			list(GET COMPONENT_ARGS_EXPORT_CMAKE_SCRIPTS ${_I} _script)
+			set_target_properties(
+				${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES EXPORT_CMAKE_SCRIPT_${_I} ${_script}
+			)
+		endforeach()
+	endif()
+
 	if(COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS)
 		list(LENGTH COMPONENT_ARGS_BUILD_TIME_EXPORT_INCLUDE_DIRS DIRS_NUM)
 		set_target_properties(
@@ -260,6 +280,8 @@ function(add_component)
 
 		PUBLIC_DEFINITIONS
 		PRIVATE_DEFINITIONS
+
+		EXPORT_CMAKE_SCRIPTS
 
 		INTERNAL_DEPENDENCIES
 
@@ -395,6 +417,22 @@ function(add_component)
 	else()
 		message("---- Component `${COMPONENT_ARGS_COMPONENT_NAME}` has no prefind dependency")
 		set_target_properties(${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES EXPORT_INCLUDE_DIR_NUM 0)
+	endif()
+
+	if(COMPONENT_ARGS_EXPORT_CMAKE_SCRIPTS)
+		list(LENGTH COMPONENT_ARGS_EXPORT_CMAKE_SCRIPTS FILES_NUM)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME} 
+			PROPERTIES EXPORT_CMAKE_SCRIPTS_NUM "${FILES_NUM}"
+		)
+
+		MATH(EXPR LOOP_COUNT "${FILES_NUM}-1")
+		foreach(_I RANGE ${LOOP_COUNT})
+			list(GET COMPONENT_ARGS_EXPORT_CMAKE_SCRIPTS ${_I} _script)
+			set_target_properties(
+				${COMPONENT_ARGS_COMPONENT_NAME} PROPERTIES EXPORT_CMAKE_SCRIPT_${_I} ${_script}
+			)
+		endforeach()
 	endif()
 
 	if(COMPONENT_ARGS_TRANSITIVE_PACKAGES_COMMANDS)

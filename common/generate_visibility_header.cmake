@@ -47,7 +47,7 @@ function(generate_visibility_header)
     set(LUX_LIBRARY_PUBLIC_MACRO_NAME   ${CONFIGURE_ARGS_PUBLIC_MACRO_NAME})
 
     configure_file(
-        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/visibility_control.h.in
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/template/visibility_control.h.in
         ${LUX_GENERATE_HEADER_DIR}/${CONFIGURE_ARGS_GENERATE_FILE_PATH}
     )
 

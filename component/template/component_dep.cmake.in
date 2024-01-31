@@ -1,18 +1,26 @@
 if(NOT TARGET @INSTALL_ARGS_NAMESPACE@::@__COMPONENT_NAME__@)
     message("---- Importing @__PROJECT_NAME__@-@__COMPONENT_NAME__@")
-    @__TRANSITIVE_PACKAGES_COMMANDS__@
-
-    @__SCRIPT_INCLUDE_COMMANDS__@
+    @__TRANSITIVE_COMMANDS__@
     set(PACKAGE_INTERNAL_DEPENDENCIES @__PACKAGE_INTERNAL_DEPENDENCIES__@)
 
     list(LENGTH PACKAGE_INTERNAL_DEPENDENCIES DEP_NUM)
+    set(COMPONENT_IMPORT_PREFIX @__COMPONENT_IMPORT_PREFIX__@)
 
     if(DEP_NUM GREATER 0)
         foreach(__internal_dep ${PACKAGE_INTERNAL_DEPENDENCIES})
             set(TARGET_COMPONENT_DEPENDENCIES_CONFIG_FILE @__PROJECT_NAME__@-${__internal_dep}-import.cmake)
-            include(${CMAKE_CURRENT_LIST_DIR}/@__COMPONENT_NAME__@/${TARGET_COMPONENT_DEPENDENCIES_CONFIG_FILE})
+            include(@__CMAKE_CONFIG_INSTALL_PREFIX__@/${__internal_dep}/${TARGET_COMPONENT_DEPENDENCIES_CONFIG_FILE})
         endforeach()
     endif()
 
     include(${CMAKE_CURRENT_LIST_DIR}/@__PROJECT_NAME__@-@__COMPONENT_NAME__@-config-targets.cmake)
+
+    # asset related properties
+    set_target_properties(@__COMPONENT_NAME_WITH_NAMESPACE__@ 
+        PROPERTIES
+        IMPORTED_COMPONENT          TRUE
+        IMPORTED_ASSETS_PREFIX      "@__COMPONENT_ASSETS_PREFIX__@"
+        IMPORTED_ASSET_TYPES        "@__COMPONENT_ASSET_TYPES__@"
+        @__EXPORT_PROPERTIES__@
+    )
 endif()

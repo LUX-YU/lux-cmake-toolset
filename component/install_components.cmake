@@ -64,7 +64,7 @@ function(__generate_transitive_commands)
     #concat commands
     set(OUTPUT_TRANSITIVE_COMMANDS "\n")
     foreach(transitive_command ${COMPONENT_TRANSITIVE_COMMANDS})
-        set(OUTPUT_TRANSITIVE_COMMANDS "${OUTPUT_TRANSITIVE_COMMANDS}\n${transitive_command}")
+        set(OUTPUT_TRANSITIVE_COMMANDS "${OUTPUT_TRANSITIVE_COMMANDS}\n\t${transitive_command}")
     endforeach()
     set(${ARGV1} ${OUTPUT_TRANSITIVE_COMMANDS} PARENT_SCOPE)
 endfunction()

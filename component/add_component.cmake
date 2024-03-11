@@ -60,7 +60,7 @@ endfunction()
 
 function(add_component)
 	set(_options 				STATIC)
-	set(_one_value_arguments 	COMPONENT_NAME EXPORT_NAME NAMESPACE PREFIX)
+	set(_one_value_arguments 	COMPONENT_NAME OUTPUT_NAME EXPORT_NAME NAMESPACE PREFIX)
 	set(_multi_value_arguments 	SOURCE_FILES)
 
 	cmake_parse_arguments(
@@ -96,6 +96,14 @@ function(add_component)
 		${LIBRARY_TYPE}
 		${COMPONENT_ARGS_SOURCE_FILES}
 	)
+
+	if(COMPONENT_ARGS_OUTPUT_NAME)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME}
+			PROPERTIES
+			OUTPUT_NAME "${COMPONENT_ARGS_OUTPUT_NAME}"
+		)
+	endif()
 
 	set_target_properties(
 		${COMPONENT_ARGS_COMPONENT_NAME}

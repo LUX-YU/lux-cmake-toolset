@@ -1,7 +1,4 @@
-if(_LIST_SUBDIRECTORY_INCLUDED_)
-	return()
-endif()
-set(_LIST_SUBDIRECTORY_INCLUDED_ TRUE)
+include_guard(GLOBAL)
 
 macro(subdirectory_list result)
     set(current_dir ${CMAKE_CURRENT_SOURCE_DIR} )

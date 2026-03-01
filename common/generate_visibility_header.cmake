@@ -1,7 +1,4 @@
-if(_VISIBILITY_CONFIG_INCLUDED_)
-	return()
-endif()
-set(_VISIBILITY_CONFIG_INCLUDED_ TRUE)
+include_guard(GLOBAL)
 
 set(LUX_GENERATE_HEADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen/include)
 

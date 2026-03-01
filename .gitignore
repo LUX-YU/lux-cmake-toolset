@@ -1,5 +1,6 @@
 /.vscode
 /.vs
+/.internal
 CMakeSettings.json
 out
 build

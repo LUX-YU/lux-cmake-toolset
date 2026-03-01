@@ -1,11 +1,11 @@
 add_component(
-    COMPONENT_NAME  component_two
+    COMPONENT_NAME  with_deps
     NAMESPACE       lux::cmake::toolset::test
     SOURCE_FILES    ${CMAKE_CURRENT_SOURCE_DIR}/src/two.cpp
 )
 
 component_include_directories(
-    component_two
+    with_deps
     BUILD_TIME_EXPORT
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     INSTALL_TIME
@@ -13,6 +13,6 @@ component_include_directories(
 )
 
 component_add_internal_dependencies(
-    component_two
-    lux::cmake::toolset::test::component_one
+    with_deps
+    lux::cmake::toolset::test::basic_shared
 )

@@ -1,8 +1,4 @@
-# INCLUDE GUARD
-if(_INSTALL_PROJECT_INCLUDED_)
-	return()
-endif()
-set(_INSTALL_PROJECT_INCLUDED_ TRUE)
+include_guard(GLOBAL)
 
 include(CMakePackageConfigHelpers)
 

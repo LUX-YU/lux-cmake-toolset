@@ -1,43 +1,6 @@
-if(_COMPONENT_ADD_INDEX_PROPERTY_INCLUDED_)
-	return()
-endif()
-set(_COMPONENT_ADD_INDEX_PROPERTY_INCLUDED_ TRUE)
+include_guard(GLOBAL)
 
-# ARGV0 	Component
-# ARGV1		Property number name
-# ARGV2 	Property name 	prefix
-#			The real property name will be <prefix>_<index>
-# ARGV3...N	Properties
-function(component_add_index_properties)
-	MATH(EXPR NUMBER "${ARGC}-3")
-	list(SUBLIST ARGN 3 ${NUMBER} PROPERTY_LIST)
-
-	list(LENGTH PROPERTY_LIST NEW_PROPERTIES_NUM)
-	get_target_property(CURRENT_PROPERTIES_NUM ${ARGV0} ${ARGV1})
-
-	if(CURRENT_PROPERTIES_NUM)
-		MATH(EXPR PROPERTIES_NUM "${CURRENT_PROPERTIES_NUM}+${NEW_PROPERTIES_NUM}")
-	else()
-		SET(CURRENT_PROPERTIES_NUM 0)
-		SET(PROPERTIES_NUM ${NEW_PROPERTIES_NUM})
-	endif()
-
-	set_target_properties(
-		${ARGV0} 
-		PROPERTIES ${ARGV1} "${PROPERTIES_NUM}"
-	)
-
-	MATH(EXPR LOOP_COUNT "${NEW_PROPERTIES_NUM}-1")
-	foreach(_I RANGE ${LOOP_COUNT})
-		list(GET PROPERTY_LIST ${_I} property)
-		MATH(EXPR INDEX "${_I}+${CURRENT_PROPERTIES_NUM}")
-		set_target_properties(
-			${ARGV0} 
-			PROPERTIES ${ARGV2}_${INDEX} ${property}
-		)
-	endforeach()
-endfunction()
-
+# Append values to a target property (creates it if not yet set).
 # ARGV0 	Component
 # ARGV1		Property name
 # ARGV2...N	New properties
@@ -60,8 +23,9 @@ function(component_append_property)
 	endif()
 endfunction()
 
-#ARGV0 	Component
-#KEY1	PROPERTIES
+# Set and record arbitrary export properties on a component.
+# ARGV0 	Component
+# KEY1		PROPERTIES  <name1> <value1> [<name2> <value2> ...]
 function(component_add_export_properties)
 	set(_options)
 	set(_one_value_arguments)

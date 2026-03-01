@@ -1,10 +1,29 @@
-# INCLUDE GUARD
-if(_ADD_TOOL_MODULE_INCLUDED_)
-	return()
-endif()
-set(_ADD_TOOL_MODULE_INCLUDED_ TRUE)
+include_guard(GLOBAL)
 
 set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/${INSTALL_ARGS_PROJECT_NAME})
+
+# Internal: set common properties shared by both add_component and add_interface_component.
+function(__setup_component_common component_name export_name namespace)
+	set_target_properties(
+		${component_name}
+		PROPERTIES COMPONENT_TARGET TRUE
+	)
+
+	set_target_properties(
+		${component_name}
+		PROPERTIES EXPORT_NAME ${export_name}
+	)
+
+	# alias
+	if(namespace)
+		set(ALIAS_NAME ${namespace}::${component_name})
+		add_library(
+			${ALIAS_NAME}
+			ALIAS
+			${component_name}
+		)
+	endif()
+endfunction()
 
 function(add_interface_component)
 	set(_options)
@@ -37,25 +56,11 @@ function(add_interface_component)
 		PROPERTIES INTERFACE_TARGET TRUE
 	)
 
-	set_target_properties(
+	__setup_component_common(
 		${COMPONENT_ARGS_COMPONENT_NAME}
-		PROPERTIES COMPONENT_TARGET TRUE
+		${COMPONENT_ARGS_EXPORT_NAME}
+		${COMPONENT_ARGS_NAMESPACE}
 	)
-
-	set_target_properties(
-        ${COMPONENT_ARGS_COMPONENT_NAME}
-        PROPERTIES EXPORT_NAME ${COMPONENT_ARGS_EXPORT_NAME}
-    )
-
-	# alias
-	if(COMPONENT_ARGS_NAMESPACE)
-	    set(ALIAS_NAME ${COMPONENT_ARGS_NAMESPACE}::${COMPONENT_ARGS_COMPONENT_NAME})
-	    add_library(
-	    	${ALIAS_NAME}
-	    	ALIAS 
-	    	${COMPONENT_ARGS_COMPONENT_NAME}
-	    )
-    endif()
 endfunction()
 
 function(add_component)
@@ -105,32 +110,18 @@ function(add_component)
 		)
 	endif()
 
-	set_target_properties(
+	__setup_component_common(
 		${COMPONENT_ARGS_COMPONENT_NAME}
-		PROPERTIES COMPONENT_TARGET TRUE
+		${COMPONENT_ARGS_EXPORT_NAME}
+		${COMPONENT_ARGS_NAMESPACE}
 	)
 
-	set_target_properties(
-        ${COMPONENT_ARGS_COMPONENT_NAME}
-        PROPERTIES EXPORT_NAME ${COMPONENT_ARGS_EXPORT_NAME}
-    )
-
-	# alias
-    if(COMPONENT_ARGS_NAMESPACE)
-	    set(ALIAS_NAME ${COMPONENT_ARGS_NAMESPACE}::${COMPONENT_ARGS_COMPONENT_NAME})
-	    add_library(
-	    	${ALIAS_NAME}
-	    	ALIAS 
-	    	${COMPONENT_ARGS_COMPONENT_NAME}
-	    )
-    endif()
-
-    # add output file prefix
-    if(COMPONENT_ARGS_PREFIX)
-	    set_target_properties(
-	    	${COMPONENT_ARGS_COMPONENT_NAME}
-	    	PROPERTIES 
-	    	OUTPUT_NAME ${COMPONENT_ARGS_PREFIX}${COMPONENT_ARGS_COMPONENT_NAME}
-	    )
-    endif()
+	# add output file prefix
+	if(COMPONENT_ARGS_PREFIX)
+		set_target_properties(
+			${COMPONENT_ARGS_COMPONENT_NAME}
+			PROPERTIES
+			OUTPUT_NAME ${COMPONENT_ARGS_PREFIX}${COMPONENT_ARGS_COMPONENT_NAME}
+		)
+	endif()
 endfunction()

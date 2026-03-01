@@ -1,11 +1,11 @@
 add_component(
-    COMPONENT_NAME  component_one
+    COMPONENT_NAME  basic_shared
     NAMESPACE       lux::cmake::toolset::test
     SOURCE_FILES    ${CMAKE_CURRENT_SOURCE_DIR}/src/one.cpp
 )
 
 component_include_directories(
-    component_one
+    basic_shared
     BUILD_TIME_EXPORT
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${LUX_GENERATE_HEADER_DIR}
@@ -14,7 +14,7 @@ component_include_directories(
 )
 
 component_add_assets(
-    component_one
+    basic_shared
     TEXT
     ${CMAKE_CURRENT_SOURCE_DIR}/assets
     ${CMAKE_CURRENT_SOURCE_DIR}/one_second.txt

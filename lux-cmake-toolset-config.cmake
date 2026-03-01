@@ -18,3 +18,4 @@ include(${LUX_CMAKE_COMPONENT_TOOLSET_DIR}/component_get_include_directories.cma
 include(${LUX_CMAKE_COMPONENT_TOOLSET_DIR}/component_include_directories.cmake)
 include(${LUX_CMAKE_COMPONENT_TOOLSET_DIR}/include_component_cmake_scripts.cmake)
 include(${LUX_CMAKE_COMPONENT_TOOLSET_DIR}/install_components.cmake)
+include(${LUX_CMAKE_COMPONENT_TOOLSET_DIR}/query_package_components.cmake)

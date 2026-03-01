@@ -1,6 +1,23 @@
 @PACKAGE_INIT@
 
-# set(components_list @EXPORT_NAME_LIST@)
+# Available components for this package
+include(${CMAKE_CURRENT_LIST_DIR}/@INSTALL_ARGS_PROJECT_NAME@-available-components.cmake)
+
+# Validate requested components
+foreach(component ${@INSTALL_ARGS_PROJECT_NAME@_FIND_COMPONENTS})
+  list(FIND @INSTALL_ARGS_PROJECT_NAME@_AVAILABLE_COMPONENTS ${component} _comp_index)
+  if(_comp_index EQUAL -1)
+    set(@INSTALL_ARGS_PROJECT_NAME@_FOUND FALSE)
+    set(@INSTALL_ARGS_PROJECT_NAME@_NOT_FOUND_MESSAGE
+      "Requested component '${component}' is not available. "
+      "Available components: ${@INSTALL_ARGS_PROJECT_NAME@_AVAILABLE_COMPONENTS}"
+    )
+    if(@INSTALL_ARGS_PROJECT_NAME@_FIND_REQUIRED)
+      message(FATAL_ERROR "${@INSTALL_ARGS_PROJECT_NAME@_NOT_FOUND_MESSAGE}")
+    endif()
+    return()
+  endif()
+endforeach()
 
 foreach(component ${@INSTALL_ARGS_PROJECT_NAME@_FIND_COMPONENTS})
   include(${CMAKE_CURRENT_LIST_DIR}/${component}/@INSTALL_ARGS_PROJECT_NAME@-${component}-import.cmake)

@@ -165,6 +165,17 @@ function(install_components)
         )
     endforeach()
     
+    # Generate available components list file
+    set(_AVAILABLE_COMPONENT_NAMES)
+    foreach(component ${INSTALL_ARGS_COMPONENTS})
+        list(APPEND _AVAILABLE_COMPONENT_NAMES ${component})
+    endforeach()
+    configure_file(
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/template/available_components.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/${INSTALL_ARGS_PROJECT_NAME}-available-components.cmake
+        @ONLY
+    )
+
     configure_package_config_file(
 	    ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/template/install_config_template.cmake.in
 	    ${CMAKE_CURRENT_BINARY_DIR}/${INSTALL_ARGS_PROJECT_NAME}-config.cmake
@@ -180,6 +191,7 @@ function(install_components)
     install(
 	    FILES   ${CMAKE_CURRENT_BINARY_DIR}/${INSTALL_ARGS_PROJECT_NAME}-config.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/${INSTALL_ARGS_PROJECT_NAME}-config-version.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/${INSTALL_ARGS_PROJECT_NAME}-available-components.cmake
         DESTINATION ${CMAKE_CONFIG_INSTALL_PREFIX}
     )
 endfunction()

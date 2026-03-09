@@ -1,4 +1,4 @@
-if(NOT TARGET @INSTALL_ARGS_NAMESPACE@::@__COMPONENT_NAME__@)
+if(NOT TARGET @__COMPONENT_NAME_WITH_NAMESPACE__@)
     message("---- Importing @__PROJECT_NAME__@-@__COMPONENT_NAME__@")
     @__TRANSITIVE_COMMANDS__@
     set(PACKAGE_INTERNAL_DEPENDENCIES @__PACKAGE_INTERNAL_DEPENDENCIES__@)
@@ -15,9 +15,11 @@ if(NOT TARGET @INSTALL_ARGS_NAMESPACE@::@__COMPONENT_NAME__@)
 
     include(${CMAKE_CURRENT_LIST_DIR}/@__PROJECT_NAME__@-@__COMPONENT_NAME__@-config-targets.cmake)
 
-    # asset related properties
+    # Promote to global scope so the target is visible across all directories,
+    # preventing duplicate imports when find_package() is called from sibling directories.
     set_target_properties(@__COMPONENT_NAME_WITH_NAMESPACE__@ 
         PROPERTIES
+        IMPORTED_GLOBAL             TRUE
         IMPORTED_COMPONENT          TRUE
         IMPORTED_ASSETS_PREFIX      "@__COMPONENT_ASSETS_PREFIX__@"
         IMPORTED_ASSET_TYPES        "@__COMPONENT_ASSET_TYPES__@"

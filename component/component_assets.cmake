@@ -124,3 +124,145 @@ function(component_get_cmake_scripts)
     component_get_assets(${ARGV0} cmake_scripts OUTPUT)
     set(${ARGV1} ${OUTPUT} PARENT_SCOPE)
 endfunction()
+
+# ARG0      COMPONENT
+# PATHS     Runtime asset directories to register under runtime_assets
+function(component_register_runtime_assets)
+    set(one_value_args COMPONENT)
+    set(multi_value_args PATHS)
+    cmake_parse_arguments(ARGS "" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
+    if(NOT ARGS_COMPONENT)
+        message(FATAL_ERROR "[component_register_runtime_assets] COMPONENT parameter is required")
+    endif()
+    if(NOT TARGET ${ARGS_COMPONENT})
+        message(FATAL_ERROR "[component_register_runtime_assets] Unknown component target '${ARGS_COMPONENT}'")
+    endif()
+    if(NOT ARGS_PATHS)
+        message(FATAL_ERROR "[component_register_runtime_assets] PATHS parameter is required")
+    endif()
+
+    set(_runtime_asset_paths "")
+    foreach(_path IN LISTS ARGS_PATHS)
+        if(NOT _path)
+            continue()
+        endif()
+        if(NOT EXISTS "${_path}")
+            file(MAKE_DIRECTORY "${_path}")
+        endif()
+        list(APPEND _runtime_asset_paths "${_path}")
+    endforeach()
+
+    list(REMOVE_DUPLICATES _runtime_asset_paths)
+    if(NOT _runtime_asset_paths)
+        message(FATAL_ERROR "[component_register_runtime_assets] No valid runtime asset paths provided")
+    endif()
+
+    component_add_assets(${ARGS_COMPONENT} runtime_assets ${_runtime_asset_paths})
+endfunction()
+
+# Generate a header exposing runtime asset root with optional env override.
+#
+# Required args:
+#   COMPONENT <component_target>
+#   OUTPUT_HEADER <path/to/header.hpp>
+# Optional args:
+#   ENV_VAR <env-var-name>      default: LUX_ASSET_ROOT
+#   SYMBOL <header-variable>    default: asset_path
+#   ROOT_PATH <explicit-root>   skip automatic root inference
+function(component_generate_runtime_asset_path_header)
+    set(one_value_args COMPONENT OUTPUT_HEADER ENV_VAR SYMBOL ROOT_PATH)
+    cmake_parse_arguments(ARGS "" "${one_value_args}" "" ${ARGN})
+
+    if(NOT ARGS_COMPONENT)
+        message(FATAL_ERROR "[component_generate_runtime_asset_path_header] COMPONENT parameter is required")
+    endif()
+    if(NOT ARGS_OUTPUT_HEADER)
+        message(FATAL_ERROR "[component_generate_runtime_asset_path_header] OUTPUT_HEADER parameter is required")
+    endif()
+    if(NOT TARGET ${ARGS_COMPONENT})
+        message(FATAL_ERROR "[component_generate_runtime_asset_path_header] Unknown component target '${ARGS_COMPONENT}'")
+    endif()
+
+    if(NOT ARGS_ENV_VAR)
+        set(ARGS_ENV_VAR "LUX_ASSET_ROOT")
+    endif()
+    if(NOT ARGS_SYMBOL)
+        set(ARGS_SYMBOL "asset_path")
+    endif()
+
+    if(ARGS_ROOT_PATH)
+        if(IS_ABSOLUTE "${ARGS_ROOT_PATH}")
+            set(_runtime_root "${ARGS_ROOT_PATH}")
+        else()
+            get_filename_component(
+                _runtime_root
+                "${ARGS_ROOT_PATH}"
+                ABSOLUTE
+                BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+        endif()
+    else()
+        get_target_property(_is_imported_component ${ARGS_COMPONENT} IMPORTED_COMPONENT)
+        if(_is_imported_component)
+            get_target_property(_assets_prefix ${ARGS_COMPONENT} IMPORTED_ASSETS_PREFIX)
+            if(NOT _assets_prefix)
+                message(FATAL_ERROR
+                    "[component_generate_runtime_asset_path_header] Imported component '${ARGS_COMPONENT}' has no IMPORTED_ASSETS_PREFIX")
+            endif()
+            set(_runtime_root "${_assets_prefix}/runtime_assets")
+        else()
+            component_get_assets(${ARGS_COMPONENT} runtime_assets _runtime_entries)
+            if(NOT _runtime_entries)
+                message(FATAL_ERROR
+                    "[component_generate_runtime_asset_path_header] Component '${ARGS_COMPONENT}' has no runtime_assets entries")
+            endif()
+
+            set(_runtime_root "")
+            foreach(_entry IN LISTS _runtime_entries)
+                if(IS_DIRECTORY "${_entry}")
+                    get_filename_component(_candidate_root "${_entry}" DIRECTORY)
+                else()
+                    get_filename_component(_entry_dir "${_entry}" DIRECTORY)
+                    get_filename_component(_candidate_root "${_entry_dir}" DIRECTORY)
+                endif()
+
+                if(NOT _runtime_root)
+                    set(_runtime_root "${_candidate_root}")
+                elseif(NOT _runtime_root STREQUAL _candidate_root)
+                    message(FATAL_ERROR
+                        "[component_generate_runtime_asset_path_header] Could not infer a single runtime root from runtime_assets entries. Provide ROOT_PATH explicitly.")
+                endif()
+            endforeach()
+        endif()
+    endif()
+
+    if(IS_ABSOLUTE "${ARGS_OUTPUT_HEADER}")
+        set(_output_header "${ARGS_OUTPUT_HEADER}")
+    else()
+        get_filename_component(
+            _output_header
+            "${ARGS_OUTPUT_HEADER}"
+            ABSOLUTE
+            BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
+
+    get_filename_component(_output_dir "${_output_header}" DIRECTORY)
+    if(NOT EXISTS "${_output_dir}")
+        file(MAKE_DIRECTORY "${_output_dir}")
+    endif()
+
+    file(TO_CMAKE_PATH "${_runtime_root}" _runtime_root_norm)
+    string(REPLACE "\\" "\\\\" _runtime_root_escaped "${_runtime_root_norm}")
+    string(REPLACE "\"" "\\\"" _runtime_root_escaped "${_runtime_root_escaped}")
+
+    file(WRITE "${_output_header}" "#pragma once\n\n")
+    file(APPEND "${_output_header}" "#include <cstdlib>\n\n")
+    file(APPEND "${_output_header}" "static inline const char* lux_resolve_asset_path()\n")
+    file(APPEND "${_output_header}" "{\n")
+    file(APPEND "${_output_header}" "    const char* override_path = std::getenv(\"${ARGS_ENV_VAR}\");\n")
+    file(APPEND "${_output_header}" "    if (override_path && override_path[0] != '\\0')\n")
+    file(APPEND "${_output_header}" "        return override_path;\n")
+    file(APPEND "${_output_header}" "    return \"${_runtime_root_escaped}\";\n")
+    file(APPEND "${_output_header}" "}\n\n")
+    file(APPEND "${_output_header}" "static inline const char* ${ARGS_SYMBOL} = lux_resolve_asset_path();\n")
+endfunction()
